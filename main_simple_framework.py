@@ -8,7 +8,8 @@ def fair_odds(prob):
 
 #-----
 '''
-For practice, we can simulate distributions (Normal for team points, Poisson for goals).
+A prototype sports betting simulation framework, to estimate prices for joint events
+Simulating distributions (Normal for team points, Poisson for goals).
 '''
 #-----
 
@@ -18,36 +19,49 @@ teamA_std=12
 teamB_mean=60
 teamB_std=12
 
-# Poisson distribution for favorite players goal
+# Poisson distribution for favorite player's distribution of goals across many matches
 fav_playerA_lambda=1.5 # average goals per match
 
-# define correlation between team points and favorite player goals
+'''
+defining correlation between team A points and Team A's favorite player's goals, and using this correlation to
+simulate  Team A points and player goal's
+
+I we had the actual hortorical data, the data distribution would intrinsically have this coorelation we could compute the correlation directly
+'''
+
+#assuming coorelation coefficient between team A points and favorite player goals
+ 
 rho_corr=0.4
+
 
 #-----
 '''
-simulate random variatbles
-team A is correlated with fav_player by rho_corr, we need a bivariate normal/gaussian distribution to set/preserve a correlation between them and later transform them to desired distributions
+simulate random variables - Team A Points, Team B Points, Fav Player A Goals- Monte Carlo (random/stochastic) Simulations
 '''
 #----
 
 num_simulations=10000
+
+'''
+team A is supposed to be correlated with fav_player by rho_corr, so we build a biavariate gaussian distribution that has this correlation.
+We then use this biavariate gaussian distribution to modulate the individual distributions of Team A points and Fav Player goals 
+so that we have two random variables that are correlated according to rho_corr.
+'''
+#create correlated bivariate standard normal distribution (mean=0, std dev=1) for Team A points and Fav Player goals
 corr_mean=[0,0]
 cov_matrix=[[1,rho_corr],[rho_corr,1]]
+corr_distribution=np.random.multivariate_normal(corr_mean,cov_matrix,num_simulations)
+print(corr_distribution.shape)
 
-#create correlated bivariate standard normal distribution for Team A points and Fav Player goals
-corr_dist=np.random.multivariate_normal(corr_mean,cov_matrix,num_simulations)
-print(corr_dist.shape)
-
-#team points distribution
-teamA_points_dist=teamA_mean + teamA_std*corr_dist[:,0]
+#simulating team points distribution 
+teamA_points_dist=teamA_mean + teamA_std*corr_distribution[:,0]
 print(len(teamA_points_dist))
 teamB_points_dist=np.random.normal(teamB_mean,teamB_std,num_simulations)
 print(len(teamB_points_dist))
 
 #favorite player goals distribution (has to be dynamic and correlated with team A points)
 player_volatality=0.5  #0 is none and 1 is high
-fav_playerA_lambda_sim=fav_playerA_lambda*np.exp(player_volatality*corr_dist[:,1])
+fav_playerA_lambda_sim=fav_playerA_lambda*np.exp(player_volatality*corr_distribution[:,1])
 
 fav_playerA_goals_dist=np.random.poisson(fav_playerA_lambda_sim)
 print(len(fav_playerA_goals_dist))
@@ -80,7 +94,7 @@ estimate Odds
 #---
 
 fair_odds_joint=fair_odds(prob_joint_event)
-house_edge=0.05 #5% house edge
+house_edge=0.05 #5% house edge { this has to account for vig, operational costs, profit margin etc.}
 adjusted_odds_joint=fair_odds_joint*(1-house_edge)
 #fair_odds=fair_odds(prob_joint_event)
 
