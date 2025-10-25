@@ -26,11 +26,10 @@ fav_playerA_lambda=1.5 # average goals per match
 defining correlation between team A points and Team A's favorite player's goals, and using this correlation to
 simulate  Team A points and player goal's
 
-I we had the actual hortorical data, the data distribution would intrinsically have this coorelation we could compute the correlation directly
+I we had the actual historical data, the data distribution would intrinsically have this coorelation we could compute the correlation directly
 '''
 
 #assuming coorelation coefficient between team A points and favorite player goals
- 
 rho_corr=0.4
 
 
